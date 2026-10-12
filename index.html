@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월간 정기 이벤트 신청</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 30px auto; padding: 0 20px; background: #f9f9f9; }
+        .box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .disabled-msg { color: red; font-weight: bold; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 입력 폼 섹션 -->
+    <div class="box">
+        <h2>이벤트 참가 신청</h2>
+        <p id="status-text">매월 15일부터 신청이 가능합니다.</p>
+        <div id="disabled-message" class="disabled-msg">현재는 신청 기간이 아닙니다. (매월 15일~말일까지만 활성화)</div>
+        
+        <form id="event-form">
+            <div class="form-group">
+                <label>장소</label>
+                <input type="text" id="location" required>
+            </div>
+            <div class="form-group">
+                <label>코스</label>
+                <input type="text" id="course" required>
+            </div>
+            <div class="form-group">
+                <label>일시</label>
+                <input type="datetime-local" id="date" required>
+            </div>
+            <div class="form-group">
+                <label>참가자 명단</label>
+                <textarea id="participants" rows="3" placeholder="예: 홍길동, 김철수, 이영희" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>비고</label>
+                <textarea id="notes" rows="2"></textarea>
+            </div>
+            <button type="submit" id="submit-btn">신청하기</button>
+        </form>
+    </div>
+
+    <!-- 2. 표시 란 (명단 출력 섹션) -->
+    <div class="box">
+        <h2>참가 신청 현황</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>장소</th>
+                    <th>코스</th>
+                    <th>일시</th>
+                    <th>참가자</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody id="data-list">
+                <tr><td colspan="5">데이터를 불러오는 중입니다...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ⚠️ 복사한 GAS 웹 앱 URL을 여기에 붙여넣으세요.
+        const GAS_URL = "https://google.com"; 
+
+        // 15일 기점 활성화 체크 로직
+        function checkActivation() {
+            const today = new Date();
+            const day = today.getDate(); 
+            
+            // 현재 날짜가 15일 미만이면 폼 비활성화
+            if (day < 15) {
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('disabled-message').style.display = 'block';
+                // 폼 내부 입력창 모두 비활성화
+                document.querySelectorAll('#event-form input, #event-form textarea').forEach(el => el.disabled = true);
+            }
+        }
+
+        // 데이터 저장 (POST)
+        document.getElementById('event-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                location: document.getElementById('location').value,
+                course: document.getElementById('course').value,
+                date: document.getElementById('date').value,
+                participants: document.getElementById('participants').value,
+                notes: document.getElementById('notes').value
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === "success") {
+                    alert("신청이 완료되었습니다!");
+                    document.getElementById('event-form').reset();
+                    loadData(); // 목록 새로고침
+                }
+            }).catch(err => console.error(err));
+        });
+
+        // 데이터 불러오기 (GET)
+        function loadData() {
+            fetch(GAS_URL)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('data-list');
+                tbody.innerHTML = "";
+                
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">등록된 신청 현황이 없습니다.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.location}</td>
+                        <td>${row.course}</td>
+                        <td>${row.date}</td>
+                        <td>${row.participants}</td>
+                        <td>${row.notes || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }).catch(err => console.error(err));
+        }
+
+        // 초기 실행
+        checkActivation();
+        loadData();
+    </script>
+</body>
+</html>
