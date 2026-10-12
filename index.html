@@ -28,6 +28,10 @@
         
         <form id="event-form">
             <div class="form-group">
+                <label>開催月</label>
+                <input type="text" id="month" required>
+            </div>
+            <div class="form-group">
                 <label>장소</label>
                 <input type="text" id="location" required>
             </div>
@@ -41,7 +45,9 @@
             </div>
             <div class="form-group">
                 <label>참가자 명단</label>
-                <textarea id="participants" rows="3" placeholder="예: 홍길동, 김철수, 이영희" required></textarea>
+                <select id="participants" required>
+                    <option value="kangjs@ais-info.co.jp"></select>
+                </select>
             </div>
             <div class="form-group">
                 <label>비고</label>
@@ -80,12 +86,12 @@
             const day = today.getDate(); 
             
             // 현재 날짜가 15일 미만이면 폼 비활성화
-            if (day < 15) {
-                document.getElementById('submit-btn').disabled = true;
-                document.getElementById('disabled-message').style.display = 'block';
-                // 폼 내부 입력창 모두 비활성화
-                document.querySelectorAll('#event-form input, #event-form textarea').forEach(el => el.disabled = true);
-            }
+            // if (day < 15) {
+            //     document.getElementById('submit-btn').disabled = true;
+            //     document.getElementById('disabled-message').style.display = 'block';
+            //     // 폼 내부 입력창 모두 비활성화
+            //     document.querySelectorAll('#event-form input, #event-form textarea').forEach(el => el.disabled = true);
+            // }
         }
 
         // 데이터 저장 (POST)
